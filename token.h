@@ -11,7 +11,7 @@
 #define KEYWORDS_COUNT 20
 
 typedef enum {
-  TK_NONE, TK_IDENT, TK_NUMBER, TK_CHAR, TK_EOF,
+  TK_NONE, TK_IDENT, TK_NUMBER, TK_CHAR, TK_STRING, TK_EOF, // Thêm TK_STRING
 
   KW_PROGRAM, KW_CONST, KW_TYPE, KW_VAR,
   KW_INTEGER, KW_CHAR, KW_ARRAY, KW_OF, 
@@ -22,8 +22,10 @@ typedef enum {
 
   SB_SEMICOLON, SB_COLON, SB_PERIOD, SB_COMMA,
   SB_ASSIGN, SB_EQ, SB_NEQ, SB_LT, SB_LE, SB_GT, SB_GE,
-  SB_PLUS, SB_MINUS, SB_TIMES, SB_SLASH,
-  SB_LPAR, SB_RPAR, SB_LSEL, SB_RSEL
+  SB_PLUS, SB_MINUS, SB_TIMES, SB_SLASH, SB_MOD, // Thêm SB_MOD cho phép toán %
+  SB_LPAR, SB_RPAR, SB_LSEL, SB_RSEL,
+
+  SB_EXCLAIMATION // Thêm dấu chấm than vào enum
 } TokenType; 
 
 typedef struct {
@@ -35,6 +37,5 @@ typedef struct {
 
 TokenType checkKeyword(char *string);
 Token* makeToken(TokenType tokenType, int lineNo, int colNo);
-
 
 #endif

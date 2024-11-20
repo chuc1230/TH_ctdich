@@ -1,4 +1,5 @@
-/* Scanner
+/* 
+ * Scanner
  * @copyright (c) 2008, Hedspi, Hanoi University of Technology
  * @author Huu-Duc Nguyen
  * @version 1.0
@@ -6,20 +7,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "reader.h"
 #include "charcode.h"
 #include "token.h"
 #include "error.h"
 
-
 extern int lineNo;
 extern int colNo;
 extern int currentChar;
-
 extern CharCode charCodes[];
-
-/***************************************************************/
 
 void skipBlank() {
   while (charCodes[currentChar] == CHAR_SPACE)
@@ -27,53 +23,88 @@ void skipBlank() {
 }
 
 void skipComment() {
-  // TODO
+  readChar(); // Skip the first '/'
+  if (currentChar == '/') { // Single-line comment
+    while (currentChar != '\n' && currentChar != EOF)
+      readChar();
+  } else if (currentChar == '*') { // Multi-line comment
+    readChar();
+    while (currentChar != '*' && currentChar != EOF) {
+      if (currentChar == '\n')
+        lineNo++;
+      readChar();
+    }
+    if (currentChar == '*') {
+      readChar();
+      if (currentChar == '/')
+        readChar();
+    }
+  }
 }
 
 Token* readIdentKeyword(void) {
-  // TODO
+  Token *token = makeToken(TK_IDENT, lineNo, colNo);
+  int i = 0;
+  while (charCodes[currentChar] == CHAR_LETTER || charCodes[currentChar] == CHAR_DIGIT) {
+    if (i < MAX_IDENT_LEN)
+      token->string[i++] = currentChar;
+    readChar();
+  }
+  token->string[i] = '\0';
+  
+  TokenType keywordType = checkKeyword(token->string);
+  if (keywordType != TK_NONE)
+    token->tokenType = keywordType;
+  return token;
 }
 
 Token* readNumber(void) {
-  // TODO
+  Token *token = makeToken(TK_NUMBER, lineNo, colNo);
+  int value = 0;
+  while (charCodes[currentChar] == CHAR_DIGIT) {
+    value = value * 10 + (currentChar - '0');
+    readChar();
+  }
+  token->value = value;
+  return token;
+}
+
+Token* readString(void) { // Đọc chuỗi
+  Token *token = makeToken(TK_STRING, lineNo, colNo);
+  int i = 0;
+  readChar(); // Bỏ qua dấu " đầu tiên
+  while (currentChar != '"' && currentChar != EOF) { // Tìm dấu " kết thúc
+    if (i < MAX_IDENT_LEN)
+      token->string[i++] = currentChar;
+    readChar();
+  }
+  token->string[i] = '\0';
+  readChar(); // Bỏ qua dấu " cuối cùng
+  return token;
 }
 
 Token* readConstChar(void) {
-  // TODO
-   Token *token = makeToken(TK_CHAR, lineNo, colNo);
-
-  readChar();
+  Token *token = makeToken(TK_CHAR, lineNo, colNo);
+  readChar(); // Skip the opening single quote
   if (currentChar == EOF) {
     token->tokenType = TK_NONE;
     error(ERR_INVALIDCHARCONSTANT, token->lineNo, token->colNo);
     return token;
   }
-    
   token->string[0] = currentChar;
   token->string[1] = '\0';
-
   readChar();
-  if (currentChar == EOF) {
+  if (currentChar == EOF || charCodes[currentChar] != CHAR_SINGLEQUOTE) {
     token->tokenType = TK_NONE;
     error(ERR_INVALIDCHARCONSTANT, token->lineNo, token->colNo);
     return token;
   }
-
-  if (charCodes[currentChar] == CHAR_SINGLEQUOTE) {
-    readChar();
-    return token;
-  } else {
-    token->tokenType = TK_NONE;
-    error(ERR_INVALIDCHARCONSTANT, token->lineNo, token->colNo);
-    return token;
-  }
+  readChar(); // Skip the closing single quote
+  return token;
 }
-
 
 Token* getToken(void) {
   Token *token;
-  int ln, cn;
-
   if (currentChar == EOF) 
     return makeToken(TK_EOF, lineNo, colNo);
 
@@ -81,26 +112,60 @@ Token* getToken(void) {
   case CHAR_SPACE: skipBlank(); return getToken();
   case CHAR_LETTER: return readIdentKeyword();
   case CHAR_DIGIT: return readNumber();
+  case CHAR_QUOTE: return readString(); // Thêm xử lý chuỗi
   case CHAR_PLUS: 
     token = makeToken(SB_PLUS, lineNo, colNo);
     readChar(); 
     return token;
-    // ....
-    // TODO
-    // ....
-  default:
-    token = makeToken(TK_NONE, lineNo, colNo);
-    error(ERR_INVALIDSYMBOL, lineNo, colNo);
+  case CHAR_MINUS: 
+    token = makeToken(SB_MINUS, lineNo, colNo);
     readChar(); 
     return token;
+  case CHAR_TIMES: 
+    token = makeToken(SB_TIMES, lineNo, colNo);
+    readChar(); 
+    return token;
+  case CHAR_SLASH: 
+    token = makeToken(SB_SLASH, lineNo, colNo);
+    readChar(); 
+    return token;
+  case CHAR_PERCENT: // Thêm phép toán %
+    token = makeToken(SB_MOD, lineNo, colNo);
+    readChar(); 
+    return token;
+  case CHAR_LT: 
+    token = makeToken(SB_LT, lineNo, colNo);
+    readChar(); 
+    return token;
+  case CHAR_GT: 
+    token = makeToken(SB_GT, lineNo, colNo);
+    readChar(); 
+    return token;
+  case CHAR_EQ: 
+    token = makeToken(SB_EQ, lineNo, colNo);
+    readChar(); 
+    return token;
+  case CHAR_EXCLAIMATION:
+    token = makeToken(SB_EXCLAIMATION, lineNo, colNo); // Thêm dấu chấm than
+    readChar();
+    return token;
+  case CHAR_SLASH: 
+    readChar();
+    if (currentChar == '/') { skipComment(); return getToken(); } 
+    break;
+  default: 
+    token = makeToken(TK_NONE, lineNo, colNo);
+    readChar();
+    return token;
   }
+  return NULL;
 }
 
 
 /******************************************************************/
 
+// Hàm in token ra màn hình
 void printToken(Token *token) {
-
   printf("%d-%d:", token->lineNo, token->colNo);
 
   switch (token->tokenType) {
@@ -148,16 +213,19 @@ void printToken(Token *token) {
   case SB_SLASH: printf("SB_SLASH\n"); break;
   case SB_LPAR: printf("SB_LPAR\n"); break;
   case SB_RPAR: printf("SB_RPAR\n"); break;
-  case SB_LSEL: printf("SB_LSEL\n"); break;
-  case SB_RSEL: printf("SB_RSEL\n"); break;
+  default: break;
   }
 }
+
+
 
 int scan(char *fileName) {
   Token *token;
 
+
   if (openInputStream(fileName) == IO_ERROR)
     return IO_ERROR;
+
 
   token = getToken();
   while (token->tokenType != TK_EOF) {
@@ -166,18 +234,22 @@ int scan(char *fileName) {
     token = getToken();
   }
 
+
   free(token);
   closeInputStream();
   return IO_SUCCESS;
 }
 
+
 /******************************************************************/
+
 
 int main(int argc, char *argv[]) {
   if (argc <= 1) {
     printf("scanner: no input file.\n");
     return -1;
   }
+
 
   if (scan(argv[1]) == IO_ERROR) {
     printf("Can\'t read input file!\n");
@@ -186,6 +258,3 @@ int main(int argc, char *argv[]) {
     
   return 0;
 }
-
-
-
