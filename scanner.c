@@ -22,7 +22,7 @@ void skipBlank() {
     readChar();
 }
 
-void skipComment() {
+void skipComment() {    //tham khao GPT
   readChar(); // Skip the first '/'
   if (currentChar == '/') { // Single-line comment
     while (currentChar != '\n' && currentChar != EOF)
@@ -42,7 +42,7 @@ void skipComment() {
   }
 }
 
-Token* readIdentKeyword(void) {
+Token* readIdentKeyword(void) { // tham khao GPT
   Token *token = makeToken(TK_IDENT, lineNo, colNo);
   int i = 0;
   while (charCodes[currentChar] == CHAR_LETTER || charCodes[currentChar] == CHAR_DIGIT) {
@@ -58,7 +58,7 @@ Token* readIdentKeyword(void) {
   return token;
 }
 
-Token* readNumber(void) {
+Token* readNumber(void) {      // tham khao GPT
   Token *token = makeToken(TK_NUMBER, lineNo, colNo);
   int value = 0;
   while (charCodes[currentChar] == CHAR_DIGIT) {
@@ -69,7 +69,7 @@ Token* readNumber(void) {
   return token;
 }
 
-Token* readString(void) { // Đọc chuỗi
+Token* readString(void) { // Đọc chuỗi  // tham khao GPT 
   Token *token = makeToken(TK_STRING, lineNo, colNo);
   int i = 0;
   readChar(); // Bỏ qua dấu " đầu tiên
@@ -83,7 +83,7 @@ Token* readString(void) { // Đọc chuỗi
   return token;
 }
 
-Token* readConstChar(void) {
+Token* readConstChar(void) { // Đọc ký tự  // tham khao GPT
   Token *token = makeToken(TK_CHAR, lineNo, colNo);
   readChar(); // Skip the opening single quote
   if (currentChar == EOF) {
@@ -103,7 +103,7 @@ Token* readConstChar(void) {
   return token;
 }
 
-Token* getToken(void) {
+Token* getToken(void) {  // tham khao GPT
   Token *token;
   if (currentChar == EOF) 
     return makeToken(TK_EOF, lineNo, colNo);
@@ -112,7 +112,7 @@ Token* getToken(void) {
   case CHAR_SPACE: skipBlank(); return getToken();
   case CHAR_LETTER: return readIdentKeyword();
   case CHAR_DIGIT: return readNumber();
-  case CHAR_QUOTE: return readString(); // Thêm xử lý chuỗi
+  case CHAR_QUOTE: return readString(); // Thêm xử lý chuỗi  // tham khao GPT 
   case CHAR_PLUS: 
     token = makeToken(SB_PLUS, lineNo, colNo);
     readChar(); 
