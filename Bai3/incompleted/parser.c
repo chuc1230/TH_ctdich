@@ -732,3 +732,27 @@ int compile(char *fileName)
   closeInputStream();
   return IO_SUCCESS;
 }
+
+void parseExpression() {
+  parseTerm();
+  while (lookAhead->tokenType == TK_POWER) {
+    eat(TK_POWER);
+    parseTerm();
+  }
+}
+void parseRepeatStatement() {
+  eat(TK_REPEAT);         // Nhận diện token `REPEAT`
+  parseStatement();       // Xử lý lệnh trong `REPEAT`
+  eat(TK_UNTIL);          // Nhận diện token `UNTIL`
+  parseCondition();       // Xử lý điều kiện
+}
+
+void parseStatement() {
+  switch (lookAhead->tokenType) {
+    // Các lệnh khác
+    case TK_REPEAT:
+      parseRepeatStatement();
+      break;
+    // ...
+  }
+}

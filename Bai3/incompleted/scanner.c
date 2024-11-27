@@ -1,9 +1,3 @@
-/* Scanner
- * @copyright (c) 2008, Hedspi, Hanoi University of Technology
- * @author Huu-Duc Nguyen
- * @version 1.0
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -12,7 +6,6 @@
 #include "token.h"
 #include "error.h"
 #include "scanner.h"
-
 
 extern int lineNo;
 extern int colNo;
@@ -55,7 +48,7 @@ Token* readIdentKeyword(void) {
   readChar();
 
   while ((currentChar != EOF) && 
-	 ((charCodes[currentChar] == CHAR_LETTER) || (charCodes[currentChar] == CHAR_DIGIT))) {
+         ((charCodes[currentChar] == CHAR_LETTER) || (charCodes[currentChar] == CHAR_DIGIT))) {
     if (count <= MAX_IDENT_LEN) token->string[count++] = (char)currentChar;
     readChar();
   }
@@ -118,6 +111,20 @@ Token* readConstChar(void) {
   }
 }
 
+Token* readExponent() {
+  int ln = lineNo;
+  int cn = colNo;
+
+  readChar();
+  if (currentChar == '*') {
+    readChar();
+    return makeToken(SB_EXPONENT, ln, cn);
+  } else {
+    error(ERR_INVALIDSYMBOL, ln, cn);
+    return makeToken(TK_NONE, ln, cn);
+  }
+}
+
 Token* getToken(void) {
   Token *token;
   int ln, cn;
@@ -138,9 +145,14 @@ Token* getToken(void) {
     readChar(); 
     return token;
   case CHAR_TIMES:
-    token = makeToken(SB_TIMES, lineNo, colNo);
-    readChar(); 
-    return token;
+    ln = lineNo;
+    cn = colNo;
+    readChar();
+    if (currentChar == '*') {
+      return readExponent();
+    } else {
+      return makeToken(SB_TIMES, ln, cn);
+    }
   case CHAR_SLASH:
     token = makeToken(SB_SLASH, lineNo, colNo);
     readChar(); 
@@ -242,11 +254,7 @@ Token* getValidToken(void) {
   return token;
 }
 
-
-/******************************************************************/
-
 void printToken(Token *token) {
-
   printf("%d-%d:", token->lineNo, token->colNo);
 
   switch (token->tokenType) {
@@ -291,11 +299,12 @@ void printToken(Token *token) {
   case SB_PLUS: printf("SB_PLUS\n"); break;
   case SB_MINUS: printf("SB_MINUS\n"); break;
   case SB_TIMES: printf("SB_TIMES\n"); break;
+  case SB_EXPONENT: printf("SB_EXPONENT\n"); break;
   case SB_SLASH: printf("SB_SLASH\n"); break;
   case SB_LPAR: printf("SB_LPAR\n"); break;
   case SB_RPAR: printf("SB_RPAR\n"); break;
   case SB_LSEL: printf("SB_LSEL\n"); break;
   case SB_RSEL: printf("SB_RSEL\n"); break;
+  default: printf("Unknown token\n"); break;
   }
 }
-

@@ -47,7 +47,7 @@ TokenType checkKeyword(char *string) {
   for (i = 0; i < KEYWORDS_COUNT; i++)
     if (keywordEq(keywords[i].string, string)) 
       return keywords[i].tokenType;
-  return TK_NONE;
+  return TK_NONE; 
 }
 
 Token* makeToken(TokenType tokenType, int lineNo, int colNo) {
@@ -60,6 +60,7 @@ Token* makeToken(TokenType tokenType, int lineNo, int colNo) {
 
 char *tokenToString(TokenType tokenType) {
   switch (tokenType) {
+  case TK_BYTES: return "bytes";
   case TK_NONE: return "None";
   case TK_IDENT: return "an identification";
   case TK_NUMBER: return "a number";
